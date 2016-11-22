@@ -4,18 +4,22 @@ from scipy.signal import butter,lfilter
 import matplotlib.pyplot as plt
 from scipy import signal
 
-
+'''
+sensorData = pd.read_csv("/Volumes/HAONAN/1.raw data/PT17.0105_M.csv", low_memory=False)
+grouped = sensorData.groupby(pd.TimeGrouper('60S'))
+'''   
 pd.set_option("display.max_rows",500)
+
 def loadData():
     sensorData = pd.read_csv("/Volumes/HAONAN/1.raw data/PT17.0105_M.csv", low_memory=False)
-    sensorData['ReadableTime'] = sensorData['time'].apply(lambda x: x[11:-4])
-
+    sensorData['ReadableTime'] = pd.to_datetime(sensorData['time'], unit='ms')
+    sensorData['ReadableTime'] = sensorData['ReadableTime'].apply(lambda x: x.strftime('%H:%M:%S'))
     return sensorData
 #pd3 RT BK Gait FOG
 def groupData(sensorData):
     #sensorData = sensorData.set_index(sensorData['sensorTime.s.'].map(parser.parse))
     sensorData = sensorData.set_index(sensorData['ReadableTime'].map(parser.parse))
-    grouped = sensorData.groupby(pd.TimeGrouper('10S'))
+    grouped = sensorData.groupby(pd.TimeGrouper('60S'))
     return grouped
 
 def butterBandPass(lowcut,highcut,fs,order=5):
@@ -33,6 +37,14 @@ def butterBandPassFilter(data,lowcut,highcut,fs,order):
 def powerSpectralDensity(data,fs):
     f,psd = signal.periodogram(data,fs,scaling="spectrum",return_onesided=True)
     return f,psd
+#dramwing a raw periodogram
+'''  
+y = [i for i in grouped]
+Fs = 67*2
+f1,accx = signal.periodogram(y,fs=Fs,scaling='density',return_onesided=True)
+plt.subplot(211)
+plt.plot(f1,accx)
+'''
 
 def powerSpectralWelch(data,fs,cnt):
     f,psd = signal.welch(data,fs,'hanning',scaling='spectrum',nfft=cnt,noverlap=cnt/2,nperseg=cnt,return_onesided=True)
