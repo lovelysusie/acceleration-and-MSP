@@ -3,6 +3,7 @@ from dateutil import parser
 from scipy.signal import butter,lfilter
 import matplotlib.pyplot as plt
 from scipy import signal
+import numpy as np
 
 '''
 sensorData = pd.read_csv("/Volumes/HAONAN/1.raw data/PT17.0105_M.csv", low_memory=False)
@@ -51,9 +52,9 @@ def powerSpectralWelch(data,fs,cnt):
     return f,psd
 
 def dominatFrequencyClac(psdData):
-    maxX = max(psdData['psdX'])
-    maxY = max(psdData['psdY'])
-    maxZ = max(psdData['psdZ'])
+    maxX = np.mean(psdData['psdX'])
+    maxY = np.mean(psdData['psdY'])
+    maxZ = np.mean(psdData['psdZ'])
     sumX = sum(psdData['psdX'])
     sumY = sum(psdData['psdY'])
     sumZ = sum(psdData['psdZ'])
@@ -67,7 +68,7 @@ def dominatFrequencyClac(psdData):
 
     indexX1 = indexX+1
     indexX2 = indexX-1
-    #print(indexX1,indexX,indexX2)
+    print(indexX1,indexX,indexX2)
     #print("valeu",psdData.get_value(indexX1,'psdX'))
     if indexX>1:
         peakX = psdData.get_value(indexX+1,'psdX')+psdData.get_value(indexX,'psdX')+psdData.get_value(indexX-1,'psdX')
