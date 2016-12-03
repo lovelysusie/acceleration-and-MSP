@@ -1,4 +1,3 @@
-library(dplyr)
 library(data.table)
 library(psd)
 library(signal)
@@ -39,8 +38,9 @@ acceleration <-acceleration[,-5]
 names(acceleration)[5]<-"mean acceleration"
 #############
 i=1
-series <-filter(sensor,sensor$ReadableTime==acceleration$time[i]|
-                  sensor$ReadableTime==acceleration$time[i+1])
+sensor <-data.table(sensor)
+series <-sensor[ReadableTime==acceleration$time[i]|
+                  ReadableTime==acceleration$time[i+1]]
 series <-data.frame(mean(series$accl),max(series$accl))
 series1 <-series
 
@@ -48,15 +48,15 @@ series1 <-series
 i=3
 j=nrow(acceleration)+1
 while (i<j) {
-  series <-filter(sensor,sensor$ReadableTime==acceleration$time[i]|
-                    sensor$ReadableTime==acceleration$time[i+1])
+  series <-sensor[ReadableTime==acceleration$time[i]|
+                    ReadableTime==acceleration$time[i+1]]
   series <-data.frame(mean(series$accl),max(series$accl))
   series1 <-rbind(series1,series)
   i=i+2
 }
 #######
 del <- seq(2, nrow(acceleration), by = 2)
-acceleration[-del,]
+#acceleration[-del,]
 series1 <-cbind(series1,acceleration[-del,])
 series1 <-series1[,-4]
 series1 <-series1[,-6]
@@ -64,29 +64,55 @@ names(series1)[1:2] <-c("mean", "max")
 #######
 names(acceleration) <-c("time","accl")
 
-bandpassfilter <-butter(n=6, W=c(0.2/62,4/62),type="pass")
+butterFunction <-butter(n=6, W=c(0.2/62,4/62),type="pass")
 
-fun1 <-function(x) {
-  x =filter(bandpassfilter, x$accelerometerX)
-  x =c(x)
+bandpassFilter <-function(x) {
+  x =data.frame(ax=filter(butterFunction, x$accelerometerX), 
+                ay=filter(butterFunction, x$accelerometerY),
+                az=filter(butterFunction, x$accelerometerZ))
+    }
+
+
+spectrumFunction <-function(x) {
   x =pspectrum(x, x.frqsamp=62*2, niter = 1)
   x =data.frame(freq=x$freq,spec=x$spec)
   x =data.table(x)
   x =x[freq>0.2 & freq<4]
-  x <-mean(x$spec)
+  x = x$spec
+ 
+}
+
+gettingMean <-function(x,y,z) {
+  x = sum(x, y, z)/(length(x)+length(y)+ length(z))/3
+  return(x)
 }
 
 i=1
-df <-filter(sensor,sensor$ReadableTime==acceleration$time[i]|
-              sensor$ReadableTime==acceleration$time[i+1])
-df <-data.frame(MSP=fun1(df))
+df <-sensor[ReadableTime==acceleration$time[i]|
+                       ReadableTime==acceleration$time[i+1]]
+df <-bandpassFilter(df)
+ax = spectrumFunction( df$ax)
+
+ax =pspectrum(df$ax, x.frqsamp=62*2, niter = 1)
+x =data.frame(freq=x$freq,spec=x$spec)
+x =data.table(x)
+x =x[freq>0.2 & freq<4]
+x = x$spec
+
+
+
+ay = spectrumFunction(df$ay)
+az = spectrumFunction(df$az)
+
+df = gettingMean(ax, ay,az)
+
 df1 <-df
 #######
 i=3
 j=nrow(acceleration)+1
 while (i<j) {
-  df <-filter(sensor,sensor$ReadableTime==acceleration$time[i]|
-                sensor$ReadableTime==acceleration$time[i+1])
+  df <-series <-sensor[ReadableTime==acceleration$time[i]|
+                         ReadableTime==acceleration$time[i+1]]
   df <-data.frame(MSP=fun1(df))
   df1 <-rbind(df1,df)
   i=i+2
