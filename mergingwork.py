@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np
+
 # if the file is 12HRS, run the code below:
 
 '''
@@ -35,11 +35,17 @@ dataFrame['timeGroup'] = clinicalData.at[2, 'UNIX-Time']
 j = dataFrame.__len__()
 sensorData.at[1:j,'timeInSecond'] = dataFrame['timeGroup']
 
-for time in clinicalData['UNIX-Time']:
-    
+i = 3
+n = clinicalData.__len__()+1
+while (i < n):
+   dataFrame = sensorData[(sensorData['timeInSecond'] > clinicalData.at[i, 'UNIX-Time']) &
+           (sensorData['timeInSecond'] < clinicalData.at[i+1, 'UNIX-Time'])]
+   dataFrame['timeGroup'] = clinicalData.at[i, 'UNIX-Time']
+   k = dataFrame.__len__()
+   sensorData.at[j+1:j+k+1,'timeInSecond'] = dataFrame['timeGroup']
+   j = j+k
+   i = i + 1
 
+clinicalData['timeInSecond'] = clinicalData['UNIX-Time']
+result = pd.merge(sensorData, clinicalData, how='left', on=['timeInSecond'])
 
-
-
-
-print(sensorData.head(5))
