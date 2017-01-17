@@ -2,15 +2,15 @@ import pandas as pd
 
 # if the file is 12HRS, run the code below:
 
-'''
-sensorData = pd.read_csv("/Users/Susie/Documents/patientdata0016/PT17.0016.csv",low_memory=True)
+
+sensorData = pd.read_csv("/Users/Susie/Documents/acceleration-and-MSP/PT17.0007.csv")
 # loading data
 sensorData['ReadableTime'] = pd.to_datetime(sensorData['time'], unit='ms')
 # convert unix time to readable time
 sensorData['ReadableTime'] = sensorData['ReadableTime'].apply(lambda x: x.strftime('%H:%M'))
 # revise the time type
 
-clinicalData = pd.read_excel("/Users/Susie/Documents/patientdata0016/PT17.0016.xlsx", sheetname=1,header=0)
+clinicalData = pd.read_excel("PT17.0007.xlsx", sheetname=1,header=0)
 clinicalData['time'] = clinicalData['time'].apply(lambda x: x.strftime('%H:%M'))
 clinicalData.rename(columns={'time': 'ReadableTime'}, inplace=True)
 # change the columns name for mergering work
@@ -18,7 +18,8 @@ clinicalData.rename(columns={'time': 'ReadableTime'}, inplace=True)
 result = pd.merge(sensorData, clinicalData, how='left', on=['ReadableTime'])
 print(result.head(5))
 
-result.to_csv('PT17.0016_M.csv', index=False)
+result.to_csv('PT17.0007_M.csv', index=False)
+print(result.head(5))
 '''
 
 # if the file is 15 min, run the code below:
@@ -48,4 +49,5 @@ while (i < n):
 
 clinicalData['timeInSecond'] = clinicalData['UNIX-Time']
 result = pd.merge(sensorData, clinicalData, how='left', on=['timeInSecond'])
-
+result.to_csv('PT17.0105_M.csv', index=False)
+'''
