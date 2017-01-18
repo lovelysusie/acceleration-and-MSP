@@ -9,7 +9,6 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, Convolution2D,MaxPooling2D,Flatten
 import pandas as pd
 import numpy as np
-from dateutil import parser
 from keras.utils import np_utils
 from sklearn.utils import shuffle
 from sklearn.cross_validation import train_test_split
@@ -35,21 +34,6 @@ grouped=grouped[['accelerometerX','accelerometerY','accelerometerZ','q1','q3','q
 X = X.as_matrix()
 X = np.reshape(X,(len(counts),3750),order='C' )
 
-
-'''
-X_train = grouped.as_matrix()
-X_train = X_train[0:11250,1:4]
-X_train = X_train.astype('float32')
-
-
-X_train = np.reshape(X_train, (90,1,625,6), order='C')
-
-X_test = grouped.as_matrix()
-X_test = X_test[11250:13500,1:4]
-X_test = X_test.astype('float32')
-
-X_test = np.reshape(X_test, (18,1,125,3), order='A')
-'''
 Y = poseData.groupby('groupId')
 Y = Y.head(1)
 Y = Y['sms3']
@@ -59,7 +43,16 @@ Y = np_utils.to_categorical(Y, nb_classes=3)
 X,Y = shuffle(X,Y, random_state=2)
 Y_train = Y[0:len(Y)*0.7]
 Y_test = Y[len(Y)*0.7:]
-    
+
+X_train = X[0:len(X)*0.7]
+X_test = X[len(X)*0.7:]
+
+X_train = np.reshape(X_train, (len(X_train),1,3750), order='C')
+X_test = np.reshape(X_test, (len(X_test),1,3750), order='C')
+
+X_train = np.reshape(X_train, (len(X_train),1,625,6), order='C')
+X_test = np.reshape(X_test, (len(X_test),1,625,6), order='C')
+
 # convert class vectors to binary class matrices
 #here exist problem, the ideal result should be converted it to be a dummy sheet,but the result is all the same
 # np_utils.to_categorical()
