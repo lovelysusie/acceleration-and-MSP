@@ -19,7 +19,7 @@ from sklearn.cross_validation import train_test_split
 # K.softmax()
 # load data
 poseData = pd.read_csv("/Users/Susie/Downloads/PT29-48-w10-s4.csv", low_memory=False)
-
+poseData = poseData.dropna() 
 # omit NA
 poseData = poseData[['accelerometerX','accelerometerY','accelerometerZ','groupId','q1','q3','q4','sms3']]
 
@@ -33,7 +33,7 @@ X = poseData[['accelerometerX','accelerometerY','accelerometerZ','q1','q3','q4']
 grouped=grouped[['accelerometerX','accelerometerY','accelerometerZ','q1','q3','q4']]
 
 X = X.as_matrix()
-X = np.reshape(X,(2579,3750),order='C' )
+X = np.reshape(X,(len(counts),3750),order='C' )
 
 
 '''
@@ -53,14 +53,14 @@ X_test = np.reshape(X_test, (18,1,125,3), order='A')
 Y = poseData.groupby('groupId')
 Y = Y.head(1)
 Y = Y['sms3']
+Y = Y.as_matrix()
+Y = np_utils.to_categorical(Y, nb_classes=3)
 
 X,Y = shuffle(X,Y, random_state=2)
 Y_train = Y[0:len(Y)*0.7]
 Y_test = Y[len(Y)*0.7:]
     
 # convert class vectors to binary class matrices
-Y_train = np_utils.to_categorical(Y_train, nb_classes=3)
-Y_test = np_utils.to_categorical(Y_test, nb_classes=3)
 #here exist problem, the ideal result should be converted it to be a dummy sheet,but the result is all the same
 # np_utils.to_categorical()
 
@@ -76,7 +76,7 @@ model = Sequential()
 
 model.add(Convolution2D(nb_filters, 1, 2,
                         border_mode='valid',
-                        input_shape=(1, 125, 3)))
+                        input_shape=(1, 625, 6)))
 model.add(Activation('relu'))
 model.add(Convolution2D(nb_filters, 1, 2))
 model.add(Activation('relu'))
@@ -91,6 +91,6 @@ model.add(Dense(nb_classes))
 model.add(Activation('relu'))
 model.compile(loss='categorical_crossentropy', optimizer='adadelta')
 
-model.fit(X_test, Y_test, nb_epoch=5, batch_size=10, verbose=2)
-scores = model.evaluate(X_test, Y_test)
+model.fit(X, Y_test, nb_epoch=5, batch_size=10, verbose=2)
+scores = model.evaluate(X, Y_test)
 # print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
